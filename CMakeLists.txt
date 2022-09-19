@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.23)
+project(DataStructure C)
+
+set(CMAKE_C_STANDARD 99)
+
+add_executable(DataStructure main.c)
+
+add_executable(binarySearchTree binarySearchTree.c)
+add_executable(avlTree avlTree.c)
+
+add_executable(huffmanTree huffmanTree.c)
+add_executable(adjacencyMatrix adjacencyMatrix.c)
+add_executable(prim prim.c)
+add_executable(kruskal kruskal.c)
+add_executable(dijkstra dijkstra.c)
+add_executable(floyd floyd.c)
+add_executable(topologicalSort topologicalSort.c)
+add_executable(criticalPath criticalPath.c)
+add_executable(sequenceSearch sequenceSearch.c)
+add_executable(sequenceSearch_Second sequenceSearch_Second.c)
+add_executable(binarySearch binarySearch.c)
+add_executable(bTree bTree.c)
