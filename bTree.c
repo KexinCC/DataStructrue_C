@@ -62,6 +62,7 @@ Node *findSuiteLeafNode(Node *T, int data)  {
 }
 
 void addData(Node *node, int data, Node **T) {
+    //往节点中插入数据
     int index = findSuiteIndex(node, data);
     for (int i = node -> keyNum; i <= index; --i) {
         node -> keys[i+1] = node -> keys[i];
@@ -70,19 +71,77 @@ void addData(Node *node, int data, Node **T) {
     node -> keyNum++;
     // 判断是否需要进行分裂
     if (node -> keyNum == node -> level) {
-        int mid = node -> level / 2 + node -> level % 2;
+        //开始分裂找到中间位置
+        int mid = node->level / 2 + node->level % 2;
+        //初始化左孩子节点
         Node *lchild = initNode(node -> level);
-        Node *rchild = initNode(node -> level);
+        //初始化右孩子节点
+        Node *rchild = initNode(node->level);
+        //将mid左边的值赋值给左孩子
         for (int i = 0; i < mid; ++i) {
             addData(lchild, node -> keys[i], T);
         }
+        //将mid右边的值赋值给右孩子
         for (int i = mid + 1; i <= node -> keyNum; ++i) {
             addData(rchild, node -> keys[i], T);
         }
+        //将原先节点mid左边的孩子赋值给分裂出来的左孩子
+        //(刚分裂出来的孩子指向分裂前节点孩子的孩子)
         for (int i = 0; i < mid; ++i) {
             lchild -> children[i] = node -> children[i];
-            if () {
+            if (node -> children[i] != NULL) {
+                node -> children[i] -> parent = lchild;
+                lchild -> childNum++;
+            }
+        }
+        int index = 0;
+        for (int i = mid; i < node -> childNum; ++i) {
+            rchild -> children[index++] = node -> children[i];
+            rchild -> childNum++;
+        }
+        //判断当前节点是否是根节点
+        if (node -> parent == NULL) {
+            //是根节点
+            Node *newParent = initNode(node -> level);
+            //给新的根节点传入数据, 就是分裂前节点的 mid 上的值
+            addData(newParent, node -> keys[mid], T);
+            newParent -> children[0] = lchild;
+            newParent -> children[1] = rchild;
+            newParent -> childNum = 2;
+            lchild -> parent = newParent;
+            rchild -> parent = newParent;
+            *T = newParent;
+        } else {
+            //不是根节点
+            //在父亲节点找一个合适的位置插入 , index: 在父亲节点中合适的位置
+            int index = findSuiteIndex(node -> parent, node -> keys[mid]);
+            lchild -> parent = node -> parent;
+            rchild -> parent = node -> parent;
+            node -> parent -> children[index - 1] = lchild;
+            if (node -> parent -> children[index] != NULL) {
+                for (int i = node -> parent -> childNum - 1; i >= index; i--) {
+                    node -> parent -> children[i+1] = node -> parent -> children[i];
+                }
+            }
+            node -> parent -> children[index] = rchild;
+            node -> parent -> childNum++;
+            addData(node -> parent, node -> keys[mid], T);
+        }
+    }
+}
 
+Node *find(Node *node, int data) {
+    if (node == NULL) {
+        return NULL;
+    }
+    for (int i = 1; i < node -> keyNum; ++i) {
+        if (data == node -> keys[i]) {
+            return node;
+        } else if (data < node -> keys[i]) {
+            return find(node -> children[i-1], data);
+        } else {
+            if (i != node -> keyNum && data < node -> keys[i+!]) {
+                return find(node -> children[i], data);
             }
         }
     }
