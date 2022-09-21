@@ -64,7 +64,7 @@ Node *findSuiteLeafNode(Node *T, int data)  {
 void addData(Node *node, int data, Node **T) {
     //往节点中插入数据
     int index = findSuiteIndex(node, data);
-    for (int i = node -> keyNum; i <= index; --i) {
+    for (int i = node -> keyNum; i >= index; --i) {
         node -> keys[i+1] = node -> keys[i];
     }
     node -> keys[index] = data;
@@ -72,13 +72,13 @@ void addData(Node *node, int data, Node **T) {
     // 判断是否需要进行分裂
     if (node -> keyNum == node -> level) {
         //开始分裂找到中间位置
-        int mid = node->level / 2 + node->level % 2;
+        int mid = node -> level / 2 + node -> level % 2;
         //初始化左孩子节点
         Node *lchild = initNode(node -> level);
         //初始化右孩子节点
-        Node *rchild = initNode(node->level);
+        Node *rchild = initNode(node -> level);
         //将mid左边的值赋值给左孩子
-        for (int i = 0; i < mid; ++i) {
+        for (int i = 1; i < mid; ++i) {
             addData(lchild, node -> keys[i], T);
         }
         //将mid右边的值赋值给右孩子
@@ -97,7 +97,10 @@ void addData(Node *node, int data, Node **T) {
         int index = 0;
         for (int i = mid; i < node -> childNum; ++i) {
             rchild -> children[index++] = node -> children[i];
-            rchild -> childNum++;
+            if (node -> children[i] != NULL) {
+                node -> children[i] -> children = rchild;
+                rchild -> childNum++;
+            }
         }
         //判断当前节点是否是根节点
         if (node -> parent == NULL) {
@@ -119,7 +122,7 @@ void addData(Node *node, int data, Node **T) {
             rchild -> parent = node -> parent;
             node -> parent -> children[index - 1] = lchild;
             if (node -> parent -> children[index] != NULL) {
-                for (int i = node -> parent -> childNum - 1; i >= index; i--) {
+                for (int i = node -> parent -> childNum - 1; i >= index; --i) {
                     node -> parent -> children[i+1] = node -> parent -> children[i];
                 }
             }
@@ -130,23 +133,78 @@ void addData(Node *node, int data, Node **T) {
     }
 }
 
+/**
+ *
+ * @param node 传入的根节点
+ * @param data 想要寻找的数据
+ * @return 找到的 包含 data 的 node 或 NULL
+ */
 Node *find(Node *node, int data) {
     if (node == NULL) {
         return NULL;
     }
-    for (int i = 1; i < node -> keyNum; ++i) {
+    for (int i = 1; i <= node -> keyNum; ++i) {
         if (data == node -> keys[i]) {
             return node;
         } else if (data < node -> keys[i]) {
             return find(node -> children[i-1], data);
         } else {
-            if (i != node -> keyNum && data < node -> keys[i+!]) {
+            if (i != node -> keyNum && data < node -> keys[i+1]) {
                 return find(node -> children[i], data);
             }
+        }
+        // node -> children[node -> keyNum] == NULL
+        return find(node -> children[node -> keyNum], data);
+    }
+}
+
+void insert(Node **T, int data) {
+    Node *node = findSuiteLeafNode(*T, data);
+    addData(node, data, T);
+}
+
+void printTree(Node *T) {
+    if (T != NULL) {
+        // 遍历打印关键字
+        for (int i = 1; i <= T -> keyNum; ++i) {
+            printf("%d ", T -> keys[i]);
+        }
+        printf("\n");
+        for (int i = 0; i < T -> childNum; ++i) {
+            printTree(T -> children[i]);
         }
     }
 }
 
 int main() {
+    Node* T = initNode(5);
+    insert(&T, 1);
+    insert(&T, 2);
+    insert(&T, 6);
+    insert(&T, 7);
+    insert(&T, 11);
+    insert(&T, 4);
+    insert(&T, 8);
+    insert(&T, 13);
+    insert(&T, 10);
+    insert(&T, 5);
+    insert(&T, 17);
+    insert(&T, 9);
+    insert(&T, 16);
+    insert(&T, 20);
+    insert(&T, 3);
+    insert(&T, 12);
+    insert(&T, 14);
+    insert(&T, 18);
+    insert(&T, 19);
+    insert(&T, 15);
+    printTree(T);
+    Node* node = find(T, 7);
+    if (node) {
+        for (int i = 1; i <= node -> keyNum; i++) {
+            printf("%d ", node -> keys[i]);
+        }
+        printf("\n");
+    }
     return 0;
 }
